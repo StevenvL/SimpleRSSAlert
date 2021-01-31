@@ -6,6 +6,7 @@ Checks RSS feed every specified interval and sends updates to Slack/Discord usin
 
 ![Preview](https://github.com/StevenvL/SimpleRSSAlert/blob/master/src/main/resources/images/Discord_2021-01-30_22-13-41.jpg?raw=true)
 
+**This is a personal project!! Do not expect any support; sorry!!**
 
 # Setup
 ## Step 1)

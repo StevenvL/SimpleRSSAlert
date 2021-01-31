@@ -122,7 +122,7 @@ public class SimpleRSSAlert {
             e.printStackTrace();
         }
 
-        UserAgent userAgent = new UserAgent("bot", "SimpleRSSAlert", "v0.1", "silverwindxp");
+        UserAgent userAgent = new UserAgent("bot", "SimpleRSSAlert", "v0.1", username);
         // Create our credentials
         Credentials credentials = Credentials.script(username, password, app_id, app_secret);
 

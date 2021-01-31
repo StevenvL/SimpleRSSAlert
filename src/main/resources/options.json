@@ -1,0 +1,12 @@
+{
+  "interval": 6,
+  "rssfeeds": [
+    "https://reddit.com/r/buildapcsales/"
+  ],
+  "discordWebHook": "",
+  "slackWebHook": "",
+  "access_token": "",
+  "token_type": "bearer",
+  "expires_in": 3600,
+  "scope": "*"
+}

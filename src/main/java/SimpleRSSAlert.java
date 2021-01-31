@@ -27,6 +27,8 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class SimpleRSSAlert {
@@ -172,10 +174,9 @@ public class SimpleRSSAlert {
             //Remove last
             //Break out of for loop.
             if (curList.contains(post.getTitle())) {
-                ArrayList<String> replacement = new ArrayList<>();
-                replacement.add(post.getTitle());
-                lastUpdatedRSSFeed.put(rssFeed, replacement);
-                System.out.println("we are at latest post");
+                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+                LocalDateTime now = LocalDateTime.now();
+                System.out.println(dtf.format(now) + " we are at latest post, size of array: " + curList.size());
                 break;
             } else {
                 curList.add(post.getTitle());

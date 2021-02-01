@@ -165,22 +165,22 @@ public class SimpleRSSAlert {
     }
 
     private void handleGetFromReddit(String rssFeed, String subreddit) {
+        String latestInfo = this.getLatestInfo(subreddit);
+        boolean newInfo = false;
         ArrayList<String> curList = lastUpdatedRSSFeed.get(rssFeed);
         SubredditReference sr = redditClient.subreddit(subreddit);
 
         DefaultPaginator.Builder<Submission, SubredditSort> paginatorBuilder = sr.posts();
-        DefaultPaginator<Submission> paginator = paginatorBuilder.limit(1).sorting(SubredditSort.NEW).build();
+        DefaultPaginator<Submission> paginator = paginatorBuilder.limit(5).sorting(SubredditSort.NEW).build();
 
         Listing<Submission> curPage = paginator.next();
 
         for (Submission post : curPage) {
-            String info = post.getTitle();
             System.out.println(post.getTitle() + ": " + post.getUrl());
 
             //If we already have this post, we have reached latest
-            //Remove last
             //Break out of for loop.
-            if (curList.contains(post.getTitle())) {
+            if ((latestInfo != null && latestInfo.equals(post.getTitle())) || curList.contains(post.getTitle())) {
                 DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
                 LocalDateTime now = LocalDateTime.now();
                 System.out.println(dtf.format(now) + " we are at latest post, size of array: " + curList.size());
@@ -188,8 +188,13 @@ public class SimpleRSSAlert {
             } else {
                 curList.add(post.getTitle());
                 this.postToWebhookDiscord(post);
+                newInfo = true;
             }
         }
+        if (curList.size() != 0 && newInfo == true) {
+            this.saveToHistory(subreddit, curList);
+        }
+
     }
 
     /*
@@ -197,6 +202,39 @@ public class SimpleRSSAlert {
      */
     private void handleGetGeneral(String website) {
 
+    }
+
+    private String getLatestInfo(String key) {
+        String fileName = key;
+        String rssFeedHistoryPath = "src/main/resources/rssFeedHistory/";
+        File file = new File(rssFeedHistoryPath + fileName + ".txt");
+
+        String result = null;
+        try {
+            Scanner myReader = new Scanner(file);
+            while (myReader.hasNextLine()) {
+                result = myReader.nextLine();
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return result;
+    }
+
+    private void saveToHistory(String key, ArrayList<String> lastUpdatedInformation) {
+        String fileName = key;
+        String rssFeedHistoryPath = "src/main/resources/rssFeedHistory/";
+        File file = new File(rssFeedHistoryPath + fileName + ".txt");
+
+        try {
+            FileWriter fw = new FileWriter(file);
+            //Latest post should be first item in array.
+            fw.write(lastUpdatedInformation.get(0));
+            fw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /*

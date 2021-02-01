@@ -48,7 +48,7 @@ hs_err_pid*
 #Project Specific
 src/main/resources/options.json
 src/main/redditUsernamePassword.yaml
-
+src/main/resources/rssFeedHistory/*
 
 
 .idea/**/gradle.xml

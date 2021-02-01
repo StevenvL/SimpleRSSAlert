@@ -31,7 +31,7 @@ Checks RSS feed every specified interval and sends updates to Slack/Discord usin
 
 ## Step 4)
 -Run ```SimpleRSSAlert.java```
-- If this is the first time running it, it will post the 5 latest submissions from the feeds you have listed
+- If this is the first time running it, it will post the 1st latest submissions from the feeds you have listed
 - It will check at every ```interval``` specified and post new information to the respective webhook
 
 

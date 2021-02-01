@@ -1,9 +1,12 @@
+import com.github.kevinsawicki.http.HttpRequest;
 import com.mrpowergamerbr.temmiewebhook.DiscordEmbed;
 import com.mrpowergamerbr.temmiewebhook.DiscordMessage;
+import com.mrpowergamerbr.temmiewebhook.Response;
 import com.mrpowergamerbr.temmiewebhook.TemmieWebhook;
 import com.mrpowergamerbr.temmiewebhook.embed.FieldEmbed;
 import com.mrpowergamerbr.temmiewebhook.embed.FooterEmbed;
 import com.mrpowergamerbr.temmiewebhook.embed.ThumbnailEmbed;
+import com.mrpowergamerbr.temmiewebhook.exceptions.WebhookException;
 import net.dean.jraw.RedditClient;
 import net.dean.jraw.http.NetworkAdapter;
 import net.dean.jraw.http.OkHttpNetworkAdapter;
@@ -40,6 +43,8 @@ public class SimpleRSSAlert {
     private HashMap<String, ArrayList<String>> lastUpdatedRSSFeed; //Website -> Posts
     private String optionsPath;
     private RedditClient redditClient;
+    private TemmieWebhook temmie;
+
 
     public SimpleRSSAlert() {
         intervalInHrs = 0;
@@ -50,6 +55,7 @@ public class SimpleRSSAlert {
         lastUpdatedRSSFeed = new HashMap<>();
         optionsPath = "src/main/resources/options.json";
         redditClient = null;
+        temmie = null;
     }
 
     public static void main(String[] args) {
@@ -64,7 +70,7 @@ public class SimpleRSSAlert {
         }
     }
 
-    public static void wait(int ms) {
+    private static void wait(int ms) {
         try {
             Thread.sleep(ms);
         } catch (InterruptedException ex) {
@@ -72,7 +78,7 @@ public class SimpleRSSAlert {
         }
     }
 
-    public void setup() {
+    private void setup() {
         JSONParser jsonParser = new JSONParser();
         JSONObject options = null;
         String resourcesPath = "src/main/resources/";
@@ -106,6 +112,7 @@ public class SimpleRSSAlert {
         this.rssFeeds = (ArrayList<String>) options.get("rssfeeds");
         this.discordWebHook = (String) options.get("discordWebHook");
         this.slackWebHook = (String) options.get("slackWebHook");
+        this.temmie = new TemmieWebhook(this.discordWebHook);
     }
 
     private void redditSetup() {
@@ -135,7 +142,7 @@ public class SimpleRSSAlert {
         redditClient = OAuthHelper.automatic(adapter, credentials);
     }
 
-    public void getUpdatesFromRSSFeeds() {
+    private void getUpdatesFromRSSFeeds() {
         if (this.rssFeeds.size() == 0) {
             System.out.println("No RSS Feeds in " + this.optionsPath);
         } else {
@@ -203,7 +210,6 @@ public class SimpleRSSAlert {
     }
 
     private void postToWebhookDiscord(Submission redditPost) {
-        TemmieWebhook temmie = new TemmieWebhook(discordWebHook);
         DiscordEmbed embeded = generateEmbededInfo(redditPost);
         String imageURL = "https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Generic_Feed-icon.svg/256px-Generic_Feed-icon.svg.png";
 
@@ -213,37 +219,63 @@ public class SimpleRSSAlert {
                 .avatarUrl(imageURL)
                 .embeds(Arrays.asList(embeded))
                 .build();
-
         temmie.sendMessage(dm);
     }
 
-    public static DiscordEmbed generateEmbededInfo(Submission redditPost) {
-        System.out.println(redditPost.getUniqueId());
-        DiscordEmbed de = DiscordEmbed.builder()
-                .title(redditPost.getTitle())
-                .description("[**Comments**](https://reddit.com" + redditPost.getPermalink() + ")\n" + redditPost.getDomain())
-                .url(redditPost.getUrl())
-                .footer(FooterEmbed.builder()
-                        .text(redditPost.getCreated().toString())
-                        .build())
-                .thumbnail(ThumbnailEmbed.builder()
-                        .url(redditPost.getThumbnail())
-                        .height(128)
-                        .build())
-                .fields(Arrays.asList(
-                        FieldEmbed.builder()
-                                .name("Author")
-                                .value(redditPost.getAuthor())
-                                .build(),
-                        FieldEmbed.builder()
-                                .name("Comment Count")
-                                .value(redditPost.getCommentCount().toString())
-                                .build(),
-                        FieldEmbed.builder()
-                                .name("Vote Count")
-                                .value(String.valueOf(redditPost.getScore()))
-                                .build()))
-                .build();
+    private static DiscordEmbed generateEmbededInfo(Submission redditPost) {
+        DiscordEmbed de = null;
+
+        //If default/no thumbnail, we send a message without thumbnailembed, otherwise we would get an error.
+        if (redditPost.getThumbnail().equals("default")) {
+            de = DiscordEmbed.builder()
+                    .title(redditPost.getTitle())
+                    .description("[**Comments**](https://reddit.com" + redditPost.getPermalink() + ")\n" + redditPost.getDomain())
+                    .url(redditPost.getUrl())
+                    .footer(FooterEmbed.builder()
+                            .text(redditPost.getCreated().toString())
+                            .build())
+                    .fields(Arrays.asList(
+                            FieldEmbed.builder()
+                                    .name("Author")
+                                    .value(redditPost.getAuthor())
+                                    .build(),
+                            FieldEmbed.builder()
+                                    .name("Comment Count")
+                                    .value(redditPost.getCommentCount().toString())
+                                    .build(),
+                            FieldEmbed.builder()
+                                    .name("Vote Count")
+                                    .value(String.valueOf(redditPost.getScore()))
+                                    .build()))
+                    .build();
+        } else {
+            de = DiscordEmbed.builder()
+                    .title(redditPost.getTitle())
+                    .description("[**Comments**](https://reddit.com" + redditPost.getPermalink() + ")\n" + redditPost.getDomain())
+                    .url(redditPost.getUrl())
+                    .footer(FooterEmbed.builder()
+                            .text(redditPost.getCreated().toString())
+                            .build())
+                    .thumbnail(ThumbnailEmbed.builder()
+                            .url(redditPost.getThumbnail())
+                            .height(128)
+                            .build())
+                    .fields(Arrays.asList(
+                            FieldEmbed.builder()
+                                    .name("Author")
+                                    .value(redditPost.getAuthor())
+                                    .build(),
+                            FieldEmbed.builder()
+                                    .name("Comment Count")
+                                    .value(redditPost.getCommentCount().toString())
+                                    .build(),
+                            FieldEmbed.builder()
+                                    .name("Vote Count")
+                                    .value(String.valueOf(redditPost.getScore()))
+                                    .build()))
+                    .build();
+        }
         return de;
     }
 }
+

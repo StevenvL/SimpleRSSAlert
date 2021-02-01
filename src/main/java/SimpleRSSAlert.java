@@ -162,7 +162,7 @@ public class SimpleRSSAlert {
         SubredditReference sr = redditClient.subreddit(subreddit);
 
         DefaultPaginator.Builder<Submission, SubredditSort> paginatorBuilder = sr.posts();
-        DefaultPaginator<Submission> paginator = paginatorBuilder.limit(5).sorting(SubredditSort.NEW).build();
+        DefaultPaginator<Submission> paginator = paginatorBuilder.limit(1).sorting(SubredditSort.NEW).build();
 
         Listing<Submission> curPage = paginator.next();
 

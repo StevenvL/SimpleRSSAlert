@@ -263,8 +263,10 @@ public class SimpleRSSAlert {
     private static DiscordEmbed generateEmbededInfo(Submission redditPost) {
         DiscordEmbed de = null;
 
+
         //If default/no thumbnail, we send a message without thumbnailembed, otherwise we would get an error.
-        if (redditPost.getThumbnail().equals("default")) {
+        String thumbnail = redditPost.getThumbnail();
+        if (thumbnail.equals("default") || thumbnail.equals("spoiler")) {
             de = DiscordEmbed.builder()
                     .title(redditPost.getTitle())
                     .description("[**Comments**](https://reddit.com" + redditPost.getPermalink() + ")\n" + redditPost.getDomain())
@@ -295,7 +297,7 @@ public class SimpleRSSAlert {
                             .text(redditPost.getCreated().toString())
                             .build())
                     .thumbnail(ThumbnailEmbed.builder()
-                            .url(redditPost.getThumbnail())
+                            .url(thumbnail)
                             .height(128)
                             .build())
                     .fields(Arrays.asList(

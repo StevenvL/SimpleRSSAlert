@@ -1,4 +1,4 @@
-# SimpleRSSAlert
+# SimpleRSSAlert 
 Checks RSS feed every specified interval and sends updates to Slack/Discord using webhook.
 
 - Uses Java and Maven for accessing Reddit API as well as publishing to discord using webhooks.
